@@ -2,6 +2,34 @@ import type * as ZendeskTypes from "node-zendesk";
 import zendesk from "node-zendesk";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { registerTicketFieldTools, listTicketFields, searchByField, listBrands, searchByBrand, analyzeTickets, sampleTicketsByDay } from "./ticket-fields.js";
+import {
+  registerQATools,
+  listQAWorkspaces,
+  listQAUsers,
+  getQAReviews,
+  getQACSAT,
+  listQAQuizzes,
+  getQAQuizLeaderboard,
+  getQAQuizOverview,
+  getQAQuizResponses,
+  searchQAConversations,
+  getQAWorkspaceUsers,
+  getQAWorkspaceReviews,
+  getQAWorkspaceCSAT,
+  getQAWorkspaceDisputes,
+  getQAWorkspaceScorecards,
+} from "./zendesk-qa.js";
+import {
+  registerWFMTools,
+  getWFMActivities,
+  getWFMReportData,
+  fetchWFMShifts,
+  getWFMTimeOff,
+  importWFMTimeOff,
+  getWFMTimeOffV2,
+  importWFMTimeOffV2,
+} from "./zendesk-wfm.js";
 
 // Types for exported functions
 export interface ZendeskConfig {
@@ -88,13 +116,16 @@ const client = zendesk.createClient({
 });
 
 export function zenDeskTools(server: McpServer) {
-  server.tool(
+  // Cast to any to avoid type instantiation depth issues with MCP SDK + Zod
+  const s = server as any;
+
+  s.tool(
     "zendesk_get_ticket",
     "Get a Zendesk ticket by ID",
     {
       ticket_id: z.string().describe("The ID of the ticket to retrieve"),
     },
-    async ({ ticket_id }) => {
+    async ({ ticket_id }: { ticket_id: string }) => {
       try {
         const result = await getTicket(client, parseInt(ticket_id, 10));
 
@@ -116,7 +147,7 @@ export function zenDeskTools(server: McpServer) {
     }
   );
 
-  server.tool(
+  s.tool(
     "zendesk_update_ticket",
     "Update a Zendesk ticket's properties",
     {
@@ -128,7 +159,15 @@ export function zenDeskTools(server: McpServer) {
       assignee_id: z.string().optional().describe("The ID of the agent to assign the ticket to"),
       tags: z.array(z.string()).optional().describe("Tags to set on the ticket (replaces existing tags)")
     },
-    async ({ ticket_id, subject, status, priority, type, assignee_id, tags }) => {
+    async ({ ticket_id, subject, status, priority, type, assignee_id, tags }: {
+      ticket_id: string;
+      subject?: string;
+      status?: string;
+      priority?: string;
+      type?: string;
+      assignee_id?: string;
+      tags?: string[];
+    }) => {
       try {
         const ticketData: any = {
           ticket: {}
@@ -171,7 +210,7 @@ export function zenDeskTools(server: McpServer) {
     }
   );
 
-  server.tool(
+  s.tool(
     "zendesk_create_ticket",
     "Create a new Zendesk ticket",
     {
@@ -182,7 +221,14 @@ export function zenDeskTools(server: McpServer) {
       type: z.enum(['problem', 'incident', 'question', 'task']).optional().describe("The type of the ticket"),
       tags: z.array(z.string()).optional().describe("Tags to add to the ticket")
     },
-    async ({ subject, description, priority, status, type, tags }) => {
+    async ({ subject, description, priority, status, type, tags }: {
+      subject: string;
+      description: string;
+      priority?: string;
+      status?: string;
+      type?: string;
+      tags?: string[];
+    }) => {
       try {
         const ticketData: any = {
           ticket: {
@@ -225,14 +271,14 @@ export function zenDeskTools(server: McpServer) {
     }
   );
 
-  server.tool(
+  s.tool(
     "zendesk_add_private_note",
     "Add a private internal note to a Zendesk ticket",
     {
       ticket_id: z.string().describe("The ID of the ticket to add a note to"),
       note: z.string().describe("The content of the private note")
     },
-    async ({ ticket_id, note }) => {
+    async ({ ticket_id, note }: { ticket_id: string; note: string }) => {
       try {
         const result = await new Promise((resolve, reject) => {
           (client as any).tickets.update(parseInt(ticket_id, 10), {
@@ -270,14 +316,14 @@ export function zenDeskTools(server: McpServer) {
     }
   );
 
-  server.tool(
+  s.tool(
     "zendesk_add_public_note",
     "Add a public comment to a Zendesk ticket",
     {
       ticket_id: z.string().describe("The ID of the ticket to add a comment to"),
       comment: z.string().describe("The content of the public comment")
     },
-    async ({ ticket_id, comment }) => {
+    async ({ ticket_id, comment }: { ticket_id: string; comment: string }) => {
       try {
         const result = await new Promise((resolve, reject) => {
           (client as any).tickets.update(parseInt(ticket_id, 10), {
@@ -315,13 +361,13 @@ export function zenDeskTools(server: McpServer) {
     }
   );
 
-  server.tool(
+  s.tool(
     "zendesk_search",
     "Search for Zendesk tickets based on a query",
     {
       query: z.string().describe("Search query (e.g., 'status:open', 'priority:urgent', 'tags:need_help')"),
     },
-    async ({ query }) => {
+    async ({ query }: { query: string }) => {
       try {
         const result = await searchTickets(client, query);
 
@@ -343,13 +389,13 @@ export function zenDeskTools(server: McpServer) {
     }
   );
 
-  server.tool(
+  s.tool(
     "zendesk_get_ticket_details",
     "Get detailed information about a Zendesk ticket including comments",
     {
       ticket_id: z.string().describe("The ID of the ticket to retrieve details for"),
     },
-    async ({ ticket_id }) => {
+    async ({ ticket_id }: { ticket_id: string }) => {
       try {
         const result = await getTicketDetails(client, parseInt(ticket_id, 10));
 
@@ -371,13 +417,13 @@ export function zenDeskTools(server: McpServer) {
     }
   );
 
-  server.tool(
+  s.tool(
     "zendesk_get_linked_incidents",
     "Fetch all incident tickets linked to a particular ticket",
     {
       ticket_id: z.string().describe("The ID of the ticket to retrieve linked incidents for"),
     },
-    async ({ ticket_id }) => {
+    async ({ ticket_id }: { ticket_id: string }) => {
       try {
         const result = await getLinkedIncidents(client, parseInt(ticket_id, 10));
 
@@ -398,4 +444,45 @@ export function zenDeskTools(server: McpServer) {
       }
     }
   );
+
+  // Register ticket field tools
+  registerTicketFieldTools(server);
+
+  // Register QA tools (requires ZENDESK_QA_API_TOKEN)
+  registerQATools(server);
+
+  // Register WFM tools (requires ZENDESK_WFM_API_TOKEN)
+  registerWFMTools(server);
 }
+
+// Re-export ticket field and brand functions
+export { listTicketFields, searchByField, listBrands, searchByBrand, analyzeTickets, sampleTicketsByDay };
+
+// Re-export QA functions
+export {
+  listQAWorkspaces,
+  listQAUsers,
+  getQAReviews,
+  getQACSAT,
+  listQAQuizzes,
+  getQAQuizLeaderboard,
+  getQAQuizOverview,
+  getQAQuizResponses,
+  searchQAConversations,
+  getQAWorkspaceUsers,
+  getQAWorkspaceReviews,
+  getQAWorkspaceCSAT,
+  getQAWorkspaceDisputes,
+  getQAWorkspaceScorecards,
+};
+
+// Re-export WFM functions
+export {
+  getWFMActivities,
+  getWFMReportData,
+  fetchWFMShifts,
+  getWFMTimeOff,
+  importWFMTimeOff,
+  getWFMTimeOffV2,
+  importWFMTimeOffV2,
+};

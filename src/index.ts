@@ -5,7 +5,36 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { zenDeskTools, createZendeskClient, searchTickets, getTicket, getTicketDetails, getLinkedIncidents } from "./tools/index.js";
 
 // Re-export the functions for library usage
-export { createZendeskClient, searchTickets, getTicket, getTicketDetails, getLinkedIncidents } from "./tools/index.js";
+export { createZendeskClient, searchTickets, getTicket, getTicketDetails, getLinkedIncidents, listTicketFields, searchByField, listBrands, searchByBrand, analyzeTickets, sampleTicketsByDay } from "./tools/index.js";
+
+// Re-export QA functions
+export {
+  listQAWorkspaces,
+  listQAUsers,
+  getQAReviews,
+  getQACSAT,
+  listQAQuizzes,
+  getQAQuizLeaderboard,
+  getQAQuizOverview,
+  getQAQuizResponses,
+  searchQAConversations,
+  getQAWorkspaceUsers,
+  getQAWorkspaceReviews,
+  getQAWorkspaceCSAT,
+  getQAWorkspaceDisputes,
+  getQAWorkspaceScorecards,
+} from "./tools/index.js";
+
+// Re-export WFM functions
+export {
+  getWFMActivities,
+  getWFMReportData,
+  fetchWFMShifts,
+  getWFMTimeOff,
+  importWFMTimeOff,
+  getWFMTimeOffV2,
+  importWFMTimeOffV2,
+} from "./tools/index.js";
 export type { ZendeskConfig } from "./tools/index.js";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
