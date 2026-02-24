@@ -20,12 +20,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/koundinya/zd-mcp-server.git"
+    "url": "https://github.com/famousdrew/zd-mcp-server.git"
   },
   "bugs": {
-    "url": "https://github.com/koundinya/zd-mcp-server/issues"
+    "url": "https://github.com/famousdrew/zd-mcp-server/issues"
   },
-  "homepage": "https://github.com/koundinya/zd-mcp-server#readme",
+  "homepage": "https://github.com/famousdrew/zd-mcp-server#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
     "node-zendesk": "^2.1.0",
