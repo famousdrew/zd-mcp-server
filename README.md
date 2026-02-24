@@ -12,6 +12,11 @@ A Model Context Protocol (MCP) server that provides AI assistants like Claude wi
 - 🔍 **Advanced Search**: Search tickets using Zendesk's powerful query syntax
 - 🔗 **Incident Management**: Retrieve and manage linked incident tickets
 - 🏷️ **Tag Management**: Add and manage ticket tags and metadata
+- 🏢 **Brand Support**: List brands and search/analyze tickets by brand
+- 📊 **Ticket Analysis**: Analyze tickets for root cause analysis with full comment history
+- 📈 **Trend Analysis**: Sample tickets per day over time for pattern detection
+- 🎛️ **Field Discovery**: List all ticket fields with IDs, types, and dropdown options
+- 📝 **QA Integration**: Access Zendesk QA (formerly Klaus) reviews, CSAT, quizzes, and scorecards
 - 🔒 **Secure Authentication**: Uses Zendesk API tokens for secure access
 - 🚀 **Easy Installation**: Available via npm, npx, or manual setup
 
@@ -48,6 +53,9 @@ Set these environment variables in your system or MCP client configuration:
 export ZENDESK_EMAIL="your-email@company.com"
 export ZENDESK_TOKEN="your-zendesk-api-token"
 export ZENDESK_SUBDOMAIN="your-company"  # from https://your-company.zendesk.com
+
+# Optional: For Zendesk QA (formerly Klaus) features
+export ZENDESK_QA_API_TOKEN="your-qa-api-token"
 ```
 
 ### Claude Desktop Setup
@@ -92,6 +100,27 @@ Add to your Claude Desktop configuration file:
 }
 ```
 
+### Claude Code (CLI) Setup
+
+```bash
+claude mcp add zendesk \
+  --transport stdio \
+  --env ZENDESK_EMAIL=your-email@company.com \
+  --env ZENDESK_TOKEN=your-zendesk-api-token \
+  --env ZENDESK_SUBDOMAIN=your-company \
+  -- node /path/to/zd-mcp-server/dist/index.js
+```
+
+Or with npx:
+```bash
+claude mcp add zendesk \
+  --transport stdio \
+  --env ZENDESK_EMAIL=your-email@company.com \
+  --env ZENDESK_TOKEN=your-zendesk-api-token \
+  --env ZENDESK_SUBDOMAIN=your-company \
+  -- npx -y zd-mcp-server
+```
+
 ### Cursor IDE Setup
 
 Add to `~/.cursor/mcp.json` or `.cursor/mcp.json` in your project:
@@ -118,6 +147,8 @@ For other MCP-compatible clients (Cline, Windsurf, etc.), refer to their documen
 
 ## 🛠️ Available Tools
 
+### Core Ticket Tools
+
 | Tool | Description | Example Usage |
 |------|-------------|---------------|
 | `zendesk_get_ticket` | Retrieve a ticket by ID | "Get ticket #12345" |
@@ -128,6 +159,41 @@ For other MCP-compatible clients (Cline, Windsurf, etc.), refer to their documen
 | `zendesk_add_private_note` | Add internal agent notes | "Add a private note about investigation progress" |
 | `zendesk_add_public_note` | Add public customer comments | "Reply to customer with solution steps" |
 | `zendesk_get_linked_incidents` | Get incident tickets linked to problems | "Show incidents related to this problem ticket" |
+
+### Field & Brand Discovery
+
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `zendesk_list_ticket_fields` | List all ticket fields with IDs, types, and dropdown options | "What custom fields are available?" |
+| `zendesk_search_by_field` | Search tickets by field name (auto-resolves to ID) | "Find tickets where Product Area is billing" |
+| `zendesk_list_brands` | List all Zendesk brands in the account | "What brands do we have?" |
+| `zendesk_search_by_brand` | Search tickets by brand name | "Find open tickets for the uAttend brand" |
+
+### Analysis Tools
+
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `zendesk_analyze_tickets` | Analyze up to 500 tickets with full comment history | "Analyze the last 30 days of Citadel tickets for root causes" |
+| `zendesk_sample_tickets` | Sample N tickets per day for trend analysis | "Sample 25 tickets per day for 20 days from uAttend" |
+
+### Zendesk QA Tools (requires `ZENDESK_QA_API_TOKEN`)
+
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `zendesk_qa_list_workspaces` | List all QA workspaces | "What QA workspaces do we have?" |
+| `zendesk_qa_list_users` | List all QA users (account-wide) | "Show all QA users" |
+| `zendesk_qa_get_reviews` | Get QA reviews (account-wide) | "Get all reviews from January 2024" |
+| `zendesk_qa_get_csat` | Get CSAT data (account-wide) | "Get CSAT scores for last month" |
+| `zendesk_qa_list_quizzes` | List all quizzes | "What quizzes are available?" |
+| `zendesk_qa_get_quiz_leaderboard` | Get quiz leaderboard | "Show quiz leaderboard" |
+| `zendesk_qa_get_quiz_overview` | Get quiz statistics | "Get statistics for quiz #123" |
+| `zendesk_qa_get_quiz_responses` | Get quiz responses | "Get responses for quiz #123" |
+| `zendesk_qa_search_conversations` | Search conversations by email | "Find conversations for john@example.com" |
+| `zendesk_qa_workspace_users` | Get workspace users | "Get users in workspace #456" |
+| `zendesk_qa_workspace_reviews` | Get workspace reviews | "Get reviews for workspace #456 from last month" |
+| `zendesk_qa_workspace_csat` | Get workspace CSAT | "Get CSAT for workspace #456" |
+| `zendesk_qa_workspace_disputes` | Get workspace disputes | "Get disputes in workspace #456" |
+| `zendesk_qa_workspace_scorecards` | Get workspace scorecards | "Show scorecards for workspace #456" |
 
 ## 💬 Usage Examples
 
@@ -160,6 +226,31 @@ Once configured, you can use natural language with your AI assistant:
 "Get details for ticket #456 including all comments and history"
 ```
 
+### Brand & Field Analysis
+```
+"List all our Zendesk brands"
+"Find open tickets for the Citadel brand"
+"What custom fields do we have for tickets?"
+"Search for tickets where Product Area is billing"
+```
+
+### Root Cause Analysis
+```
+"Analyze the last 30 days of uAttend tickets and identify common issues"
+"Get 100 Citadel tickets from the past week with full conversation history"
+"Sample 25 tickets per day from CloudPunch for the last 20 days - what trends do you see?"
+```
+
+### Zendesk QA Analysis
+```
+"List all QA workspaces"
+"Get QA reviews from January 2024"
+"Show CSAT scores for workspace #123 from last month"
+"What disputes were filed in workspace #456 this quarter?"
+"Get the quiz leaderboard"
+"Search for conversations involving support@company.com"
+```
+
 ## 🔑 Authentication Setup
 
 ### 1. Generate API Token
@@ -189,10 +280,12 @@ Ensure your Zendesk user account has:
 ```
 zd-mcp-server/
 ├── src/
-│   ├── index.ts          # Server entry point
+│   ├── index.ts              # Server entry point
 │   └── tools/
-│       └── index.ts      # Zendesk tool implementations
-├── dist/                 # Compiled JavaScript
+│       ├── index.ts          # Core Zendesk tool implementations
+│       ├── ticket-fields.ts  # Field, brand, and analysis tools
+│       └── zendesk-qa.ts     # Zendesk QA Export API tools
+├── dist/                     # Compiled JavaScript
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -263,6 +356,31 @@ Check MCP client logs:
 - **Terminal**: Run server directly to see real-time logs
 
 ## 📚 Advanced Usage
+
+### Analysis Tool Parameters
+
+#### `zendesk_analyze_tickets`
+Fetches up to 500 tickets with full comment history for root cause analysis.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `brand_name` | string | required | Brand to analyze (partial match) |
+| `days_back` | number | 30 | Days to look back |
+| `max_tickets` | number | 100 | Max tickets (up to 500) |
+| `status` | string | all | Filter: open, pending, solved, closed |
+| `priority` | string | all | Filter: low, normal, high, urgent |
+
+#### `zendesk_sample_tickets`
+Samples N tickets per day for trend analysis - prevents busy days from dominating.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `brand_name` | string | required | Brand to sample (partial match) |
+| `days_back` | number | 20 | Days to look back |
+| `tickets_per_day` | number | 25 | Tickets per day (up to 50) |
+| `status` | string | all | Filter: open, pending, solved, closed |
+| `priority` | string | all | Filter: low, normal, high, urgent |
+| `include_comments` | boolean | true | Include full comment history |
 
 ### Search Query Syntax
 
