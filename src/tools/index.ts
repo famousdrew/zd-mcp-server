@@ -30,6 +30,18 @@ import {
   getWFMTimeOffV2,
   importWFMTimeOffV2,
 } from "./zendesk-wfm.js";
+import {
+  registerAIExportTools,
+  getAIExportSignedUrls,
+  fetchAIExportConversations,
+} from "./zendesk-ai-export.js";
+import {
+  registerAnalyticsTools,
+  getTicketMetrics,
+  listTicketMetrics,
+  getTicketAudits,
+  getIncrementalTickets,
+} from "./zendesk-analytics.js";
 
 // Types for exported functions
 export interface ZendeskConfig {
@@ -453,6 +465,12 @@ export function zenDeskTools(server: McpServer) {
 
   // Register WFM tools (requires ZENDESK_WFM_API_TOKEN)
   registerWFMTools(server);
+
+  // Register AI Export tools (requires ZENDESK_AI_EXPORT_TOKEN, ZENDESK_AI_EXPORT_ORG_ID, ZENDESK_AI_EXPORT_BOT_ID)
+  registerAIExportTools(server);
+
+  // Register Analytics tools (ticket metrics, audits, incremental export)
+  registerAnalyticsTools(server);
 }
 
 // Re-export ticket field and brand functions
@@ -486,3 +504,9 @@ export {
   getWFMTimeOffV2,
   importWFMTimeOffV2,
 };
+
+// Re-export AI Export functions
+export { getAIExportSignedUrls, fetchAIExportConversations };
+
+// Re-export Analytics functions
+export { getTicketMetrics, listTicketMetrics, getTicketAudits, getIncrementalTickets };

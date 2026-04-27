@@ -17,6 +17,11 @@ A Model Context Protocol (MCP) server that provides AI assistants like Claude wi
 - 📈 **Trend Analysis**: Sample tickets per day over time for pattern detection
 - 🎛️ **Field Discovery**: List all ticket fields with IDs, types, and dropdown options
 - 📝 **QA Integration**: Access Zendesk QA (formerly Klaus) reviews, CSAT, quizzes, and scorecards
+- ⏱️ **Ticket Metrics**: Pull response times, resolution times, and reopen counts per ticket
+- 🕵️ **Ticket Audits**: Full field-level change history for any ticket
+- 📦 **Incremental Exports**: Cursor-based bulk ticket exports for large dataset pulls
+- 🤖 **AI Agent Export**: Download bot conversation exports from Zendesk AI Agents
+- 👷 **Workforce Management**: Access WFM activities, reports, shifts, and time-off data
 - 🔒 **Secure Authentication**: Uses Zendesk API tokens for secure access
 - 🚀 **Easy Installation**: Available via npm, npx, or manual setup
 
@@ -37,7 +42,7 @@ npx zd-mcp-server
 ### Option 3: Development Setup
 
 ```bash
-git clone https://github.com/koundinya/zd-mcp-server.git
+git clone https://github.com/famousdrew/zd-mcp-server.git
 cd zd-mcp-server
 npm install
 npm run build
@@ -56,6 +61,15 @@ export ZENDESK_SUBDOMAIN="your-company"  # from https://your-company.zendesk.com
 
 # Optional: For Zendesk QA (formerly Klaus) features
 export ZENDESK_QA_API_TOKEN="your-qa-api-token"
+
+# Optional: For Workforce Management features
+export ZENDESK_WFM_API_TOKEN="your-wfm-api-token"
+
+# Optional: For AI Agent conversation export features
+export ZENDESK_AI_EXPORT_TOKEN="your-ai-agents-api-token"
+export ZENDESK_AI_EXPORT_ORG_ID="your-organization-id"
+export ZENDESK_AI_EXPORT_BOT_ID="your-bot-id"
+export ZENDESK_AI_EXPORT_REGION="us"  # "us" (default) or "eu"
 ```
 
 ### Claude Desktop Setup
@@ -102,16 +116,6 @@ Add to your Claude Desktop configuration file:
 
 ### Claude Code (CLI) Setup
 
-```bash
-claude mcp add zendesk \
-  --transport stdio \
-  --env ZENDESK_EMAIL=your-email@company.com \
-  --env ZENDESK_TOKEN=your-zendesk-api-token \
-  --env ZENDESK_SUBDOMAIN=your-company \
-  -- node /path/to/zd-mcp-server/dist/index.js
-```
-
-Or with npx:
 ```bash
 claude mcp add zendesk \
   --transport stdio \
@@ -176,6 +180,24 @@ For other MCP-compatible clients (Cline, Windsurf, etc.), refer to their documen
 | `zendesk_analyze_tickets` | Analyze up to 500 tickets with full comment history | "Analyze the last 30 days of Citadel tickets for root causes" |
 | `zendesk_sample_tickets` | Sample N tickets per day for trend analysis | "Sample 25 tickets per day for 20 days from uAttend" |
 
+### Ticket Metrics & History
+
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `zendesk_get_ticket_metrics` | Get timing metrics for one ticket (reply time, resolution time, reopens) | "How long did ticket #12345 take to resolve?" |
+| `zendesk_list_ticket_metrics` | Bulk metrics across all tickets, newest first (max 100/page) | "Pull metrics for the last 100 tickets" |
+| `zendesk_get_ticket_audits` | Full field-level change history for a ticket | "Show me every change made to ticket #67890" |
+| `zendesk_incremental_tickets` | Cursor-based bulk export of tickets updated since a given time | "Export all tickets updated in the last 7 days" |
+
+### AI Agent Export Tools (requires `ZENDESK_AI_EXPORT_TOKEN`, `ZENDESK_AI_EXPORT_ORG_ID`, `ZENDESK_AI_EXPORT_BOT_ID`)
+
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `zendesk_ai_export_get_signed_urls` | Get signed download URLs for bot conversation exports for a given date | "Get export URLs for bot conversations on 2024-03-15" |
+| `zendesk_ai_export_fetch_conversations` | Download and parse conversation records from a signed URL | "Fetch the conversations from this export URL" |
+
+> Data is available back to 2024-01-01. Files are generated once daily at midnight UTC — the most recent available date is yesterday. Signed URLs expire after 24 hours.
+
 ### Zendesk QA Tools (requires `ZENDESK_QA_API_TOKEN`)
 
 | Tool | Description | Example Usage |
@@ -194,6 +216,16 @@ For other MCP-compatible clients (Cline, Windsurf, etc.), refer to their documen
 | `zendesk_qa_workspace_csat` | Get workspace CSAT | "Get CSAT for workspace #456" |
 | `zendesk_qa_workspace_disputes` | Get workspace disputes | "Get disputes in workspace #456" |
 | `zendesk_qa_workspace_scorecards` | Get workspace scorecards | "Show scorecards for workspace #456" |
+
+### Workforce Management Tools (requires `ZENDESK_WFM_API_TOKEN`)
+
+| Tool | Description | Example Usage |
+|------|-------------|---------------|
+| `zendesk_wfm_get_activities` | Get WFM activities | "Show WFM activities for this week" |
+| `zendesk_wfm_get_report_data` | Get WFM report data | "Pull WFM report for last month" |
+| `zendesk_wfm_fetch_shifts` | Fetch agent shifts | "Get shifts for the support team" |
+| `zendesk_wfm_get_time_off` | Get time-off records | "Show time-off requests for this quarter" |
+| `zendesk_wfm_import_time_off` | Import time-off data | "Import time-off records" |
 
 ## 💬 Usage Examples
 
@@ -241,6 +273,19 @@ Once configured, you can use natural language with your AI assistant:
 "Sample 25 tickets per day from CloudPunch for the last 20 days - what trends do you see?"
 ```
 
+### Ticket Metrics & History
+```
+"How long did ticket #12345 take to get a first reply?"
+"Show me every status change on ticket #67890"
+"Export all tickets updated since last Monday"
+```
+
+### AI Agent Conversations
+```
+"Get the bot conversation export URLs for March 15th"
+"Download and summarize yesterday's bot conversation data"
+```
+
 ### Zendesk QA Analysis
 ```
 "List all QA workspaces"
@@ -248,26 +293,29 @@ Once configured, you can use natural language with your AI assistant:
 "Show CSAT scores for workspace #123 from last month"
 "What disputes were filed in workspace #456 this quarter?"
 "Get the quiz leaderboard"
-"Search for conversations involving support@company.com"
 ```
 
 ## 🔑 Authentication Setup
 
-### 1. Generate API Token
+### Standard Zendesk API Token
 
 1. Log in to your Zendesk account
 2. Go to **Admin Center** → **Apps and integrations** → **APIs** → **Zendesk API**
-3. Click **Add API token**
-4. Add description: "MCP Server Integration"
-5. Click **Create** and copy the token
-6. **Important**: Save this token securely - you won't see it again
+3. Click **Add API token**, add a description, click **Create**, and copy the token
+4. **Important**: Save this token securely — you won't see it again
 
-### 2. Find Your Subdomain
+### AI Agent Export Token
+
+1. Go to **Zendesk AI Agents** settings
+2. Navigate to **Settings** → **API**
+3. Generate a new API token and note your **Organization ID** and **Bot ID**
+
+### Find Your Subdomain
 
 Your Zendesk URL format: `https://YOUR-SUBDOMAIN.zendesk.com`
 Use `YOUR-SUBDOMAIN` as the `ZENDESK_SUBDOMAIN` value.
 
-### 3. Required Permissions
+### Required Permissions
 
 Ensure your Zendesk user account has:
 - **Agent** role (minimum)
@@ -284,7 +332,13 @@ zd-mcp-server/
 │   └── tools/
 │       ├── index.ts          # Core Zendesk tool implementations
 │       ├── ticket-fields.ts  # Field, brand, and analysis tools
-│       └── zendesk-qa.ts     # Zendesk QA Export API tools
+│       ├── zendesk-qa.ts     # Zendesk QA Export API tools
+│       ├── zendesk-wfm.ts    # Workforce Management tools
+│       ├── zendesk-analytics.ts  # Ticket metrics, audits, incremental export
+│       └── zendesk-ai-export.ts  # AI Agent conversation export
+├── .github/
+│   └── workflows/
+│       └── publish.yml       # Automated npm publishing on version tags
 ├── dist/                     # Compiled JavaScript
 ├── package.json
 ├── tsconfig.json
@@ -293,7 +347,7 @@ zd-mcp-server/
 
 ### Building from Source
 ```bash
-git clone https://github.com/koundinya/zd-mcp-server.git
+git clone https://github.com/famousdrew/zd-mcp-server.git
 cd zd-mcp-server
 npm install
 npm run build
@@ -310,12 +364,19 @@ npm run dev
 
 ### Testing
 ```bash
-# Test with MCP Inspector (if available)
-npx @modelcontextprotocol/inspector zd-mcp-server
-
-# Or test the built version
 npx @modelcontextprotocol/inspector node dist/index.js
 ```
+
+### Publishing a New Version
+
+Bump the version in `package.json`, then push a version tag:
+
+```bash
+git tag v0.6.0
+git push origin v0.6.0
+```
+
+GitHub Actions will build and publish to npm automatically.
 
 ## 🔍 Troubleshooting
 
@@ -329,7 +390,6 @@ npx @modelcontextprotocol/inspector node dist/index.js
 **❌ "Permission denied" errors**
 - Verify your Zendesk user has Agent permissions or higher
 - Ensure API access is enabled for your account
-- Check if your token has the required scopes
 
 **❌ "Server not found" errors**
 - Ensure you've installed the package: `npm install -g zd-mcp-server`
@@ -337,30 +397,24 @@ npx @modelcontextprotocol/inspector node dist/index.js
 - Check that your MCP client configuration file syntax is correct
 
 **❌ "Environment variables not set" errors**
-- Verify all three environment variables are set: `ZENDESK_EMAIL`, `ZENDESK_TOKEN`, `ZENDESK_SUBDOMAIN`
+- Verify all three required variables are set: `ZENDESK_EMAIL`, `ZENDESK_TOKEN`, `ZENDESK_SUBDOMAIN`
 - Restart your MCP client after setting environment variables
-- Check for typos in environment variable names
 
-### Debug Mode
-
-Enable debug logging:
-```bash
-DEBUG=zd-mcp-server:* zd-mcp-server
-```
+**❌ AI Export errors**
+- Confirm `ZENDESK_AI_EXPORT_TOKEN`, `ZENDESK_AI_EXPORT_ORG_ID`, and `ZENDESK_AI_EXPORT_BOT_ID` are all set
+- Export files are only available for dates up to yesterday — today's data hasn't been generated yet
+- Signed URLs expire after 24 hours; request fresh ones if you get a 403
 
 ### Log Files
 
-Check MCP client logs:
 - **Claude Desktop**: `~/Library/Logs/Claude/` (macOS) or `%APPDATA%/Claude/logs/` (Windows)
 - **Cursor**: Check the output panel for MCP server logs
-- **Terminal**: Run server directly to see real-time logs
 
 ## 📚 Advanced Usage
 
 ### Analysis Tool Parameters
 
 #### `zendesk_analyze_tickets`
-Fetches up to 500 tickets with full comment history for root cause analysis.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -371,7 +425,6 @@ Fetches up to 500 tickets with full comment history for root cause analysis.
 | `priority` | string | all | Filter: low, normal, high, urgent |
 
 #### `zendesk_sample_tickets`
-Samples N tickets per day for trend analysis - prevents busy days from dominating.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -382,15 +435,20 @@ Samples N tickets per day for trend analysis - prevents busy days from dominatin
 | `priority` | string | all | Filter: low, normal, high, urgent |
 | `include_comments` | boolean | true | Include full comment history |
 
-### Search Query Syntax
+#### `zendesk_incremental_tickets`
 
-Zendesk search supports powerful query operators:
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `start_time` | number | 30 days ago | Unix timestamp to start from |
+| `cursor` | string | — | Pagination cursor from a previous response's `after_cursor` field |
+
+### Search Query Syntax
 
 ```bash
 # Status-based searches
 status:open status:pending status:solved
 
-# Priority searches  
+# Priority searches
 priority:urgent priority:high priority:normal priority:low
 
 # Date-based searches
@@ -406,34 +464,14 @@ requester:customer@company.com
 status:open priority:high created>2024-01-01 tags:billing
 ```
 
-### Batch Operations
-
-While the server doesn't directly support batch operations, you can chain commands:
-
-```
-"Search for all urgent tickets, then show me details for the first 3 results"
-"Find tickets tagged 'billing', update them to normal priority, and add a note about the billing system maintenance"
-```
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Development Setup
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Reporting Issues
-
-Found a bug? Please open an issue with:
-- Description of the problem
-- Steps to reproduce
-- Expected behavior
-- Your environment (OS, Node.js version, MCP client)
-- Relevant log outputs
+3. Commit your changes
+4. Push to the branch and open a Pull Request
 
 ## 📄 License
 
@@ -441,14 +479,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- **GitHub**: https://github.com/koundinya/zd-mcp-server
+- **GitHub**: https://github.com/famousdrew/zd-mcp-server
 - **npm**: https://www.npmjs.com/package/zd-mcp-server
 - **Zendesk API Docs**: https://developer.zendesk.com/api-reference/
 - **Model Context Protocol**: https://modelcontextprotocol.io/
 
 ## 🆘 Support
 
-- **Issues**: [GitHub Issues](https://github.com/koundinya/zd-mcp-server/issues)
+- **Issues**: [GitHub Issues](https://github.com/famousdrew/zd-mcp-server/issues)
 - **Zendesk API**: [Zendesk Developer Documentation](https://developer.zendesk.com/)
 - **MCP Protocol**: [MCP Documentation](https://modelcontextprotocol.io/docs/)
 

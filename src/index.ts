@@ -35,6 +35,13 @@ export {
   getWFMTimeOffV2,
   importWFMTimeOffV2,
 } from "./tools/index.js";
+
+// Re-export AI Export functions
+export { getAIExportSignedUrls, fetchAIExportConversations } from "./tools/index.js";
+
+// Re-export Analytics functions
+export { getTicketMetrics, listTicketMetrics, getTicketAudits, getIncrementalTickets } from "./tools/index.js";
+
 export type { ZendeskConfig } from "./tools/index.js";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
