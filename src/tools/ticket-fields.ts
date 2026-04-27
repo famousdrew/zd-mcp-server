@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { getZendeskBaseUrl, getZendeskAuthHeaders } from "./zendesk-client.js";
 
 // Type definitions for Zendesk Ticket Fields API
 interface ZendeskFieldOption {
@@ -95,23 +96,8 @@ const SYSTEM_FIELDS = new Set([
   'subject', 'description', 'ticket_type', 'brand', 'organization'
 ]);
 
-// Helper function to create auth headers
-function getAuthHeaders(): HeadersInit {
-  const email = process.env.ZENDESK_EMAIL;
-  const token = process.env.ZENDESK_TOKEN;
-  const auth = Buffer.from(`${email}/token:${token}`).toString("base64");
-
-  return {
-    Authorization: `Basic ${auth}`,
-    "Content-Type": "application/json",
-  };
-}
-
-// Helper function to get base URL
-function getBaseUrl(): string {
-  const subdomain = process.env.ZENDESK_SUBDOMAIN;
-  return `https://${subdomain}.zendesk.com/api/v2`;
-}
+const getAuthHeaders = getZendeskAuthHeaders;
+const getBaseUrl = getZendeskBaseUrl;
 
 // Helper function to determine search syntax for a field
 function getSearchSyntax(field: ZendeskTicketField): string {

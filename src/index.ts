@@ -2,50 +2,29 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { zenDeskTools, createZendeskClient, searchTickets, getTicket, getTicketDetails, getLinkedIncidents } from "./tools/index.js";
-
-// Re-export the functions for library usage
-export { createZendeskClient, searchTickets, getTicket, getTicketDetails, getLinkedIncidents, listTicketFields, searchByField, listBrands, searchByBrand, analyzeTickets, sampleTicketsByDay } from "./tools/index.js";
-
-// Re-export QA functions
-export {
-  listQAWorkspaces,
-  listQAUsers,
-  getQAReviews,
-  getQACSAT,
-  listQAQuizzes,
-  getQAQuizLeaderboard,
-  getQAQuizOverview,
-  getQAQuizResponses,
-  searchQAConversations,
-  getQAWorkspaceUsers,
-  getQAWorkspaceReviews,
-  getQAWorkspaceCSAT,
-  getQAWorkspaceDisputes,
-  getQAWorkspaceScorecards,
-} from "./tools/index.js";
-
-// Re-export WFM functions
-export {
-  getWFMActivities,
-  getWFMReportData,
-  fetchWFMShifts,
-  getWFMTimeOff,
-  importWFMTimeOff,
-  getWFMTimeOffV2,
-  importWFMTimeOffV2,
-} from "./tools/index.js";
-
-// Re-export AI Export functions
-export { getAIExportSignedUrls, fetchAIExportConversations } from "./tools/index.js";
-
-// Re-export Analytics functions
-export { getTicketMetrics, listTicketMetrics, getTicketAudits, getIncrementalTickets } from "./tools/index.js";
-
-export type { ZendeskConfig } from "./tools/index.js";
+import { zenDeskTools, searchTickets, getTicket, getTicketDetails, getLinkedIncidents } from "./tools/index.js";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import { readFileSync } from "fs";
+
+export { searchTickets, getTicket, getTicketDetails, getLinkedIncidents } from "./tools/index.js";
+export { listTicketFields, searchByField, listBrands, searchByBrand, analyzeTickets, sampleTicketsByDay } from "./tools/index.js";
+
+export {
+  listQAWorkspaces, listQAUsers, getQAReviews, getQACSAT, listQAQuizzes,
+  getQAQuizLeaderboard, getQAQuizOverview, getQAQuizResponses, searchQAConversations,
+  getQAWorkspaceUsers, getQAWorkspaceReviews, getQAWorkspaceCSAT,
+  getQAWorkspaceDisputes, getQAWorkspaceScorecards,
+} from "./tools/index.js";
+
+export {
+  getWFMActivities, getWFMReportData, fetchWFMShifts, getWFMTimeOff,
+  importWFMTimeOff, getWFMTimeOffV2, importWFMTimeOffV2,
+} from "./tools/index.js";
+
+export { getAIExportSignedUrls, fetchAIExportConversations } from "./tools/index.js";
+
+export { getTicketMetrics, listTicketMetrics, getTicketAudits, getIncrementalTickets } from "./tools/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -56,15 +35,8 @@ const VERSION = packageJson.version;
 
 async function main() {
   const server = new McpServer(
-    {
-      name: "zendesk-mcp",
-      version: VERSION,
-    },
-    {
-      capabilities: {
-        logging: {},
-      },
-    }
+    { name: "zendesk-mcp", version: VERSION },
+    { capabilities: { logging: {} } }
   );
 
   zenDeskTools(server);
