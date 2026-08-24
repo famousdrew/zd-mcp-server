@@ -21,10 +21,11 @@ function getAIExportHeaders() {
 }
 
 function getAIExportBaseUrl() {
-  const region = process.env.ZENDESK_AI_EXPORT_REGION || "us";
-  return region === "eu"
-    ? "https://api.ultimate.ai/data-export/v3"
-    : "https://api.us.ultimate.ai/data-export/v3";
+  // Legacy *.ultimate.ai hosts are retired as of 2026-09-15; the Public API is
+  // now served from the Zendesk subdomain, so region no longer selects a host.
+  const subdomain = process.env.ZENDESK_SUBDOMAIN;
+  if (!subdomain) throw new Error("Missing ZENDESK_SUBDOMAIN");
+  return `https://${subdomain}.zendesk.com/ai-agents/api/data-export/v3`;
 }
 
 async function handleExportResponse<T>(response: Response): Promise<T> {

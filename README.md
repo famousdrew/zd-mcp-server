@@ -69,7 +69,6 @@ export ZENDESK_WFM_API_TOKEN="your-wfm-api-token"
 export ZENDESK_AI_EXPORT_TOKEN="your-ai-agents-api-token"
 export ZENDESK_AI_EXPORT_ORG_ID="your-organization-id"
 export ZENDESK_AI_EXPORT_BOT_ID="your-bot-id"
-export ZENDESK_AI_EXPORT_REGION="us"  # "us" (default) or "eu"
 ```
 
 ### Claude Desktop Setup
@@ -197,6 +196,8 @@ For other MCP-compatible clients (Cline, Windsurf, etc.), refer to their documen
 | `zendesk_ai_export_fetch_conversations` | Download and parse conversation records from a signed URL | "Fetch the conversations from this export URL" |
 
 > Data is available back to 2024-01-01. Files are generated once daily at midnight UTC — the most recent available date is yesterday. Signed URLs expire after 24 hours.
+
+> Requests go to `https://YOUR-SUBDOMAIN.zendesk.com/ai-agents/api/data-export/v3`, so `ZENDESK_SUBDOMAIN` is required for these tools too. The legacy `*.ultimate.ai` hosts were retired on 2026-09-15; `ZENDESK_AI_EXPORT_REGION` is no longer used, as the endpoint is derived from your subdomain in every region.
 
 ### Zendesk QA Tools (requires `ZENDESK_QA_API_TOKEN`)
 

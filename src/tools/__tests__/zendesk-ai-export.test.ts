@@ -5,6 +5,7 @@ const ENV = {
   ZENDESK_AI_EXPORT_TOKEN: "export-token-abc",
   ZENDESK_AI_EXPORT_ORG_ID: "org-123",
   ZENDESK_AI_EXPORT_BOT_ID: "bot-456",
+  ZENDESK_SUBDOMAIN: "testsub",
 };
 
 function makeResponse(status: number, body: unknown, isText = false) {
@@ -22,6 +23,7 @@ describe("zendesk-ai-export", () => {
     vi.stubEnv("ZENDESK_AI_EXPORT_TOKEN", ENV.ZENDESK_AI_EXPORT_TOKEN);
     vi.stubEnv("ZENDESK_AI_EXPORT_ORG_ID", ENV.ZENDESK_AI_EXPORT_ORG_ID);
     vi.stubEnv("ZENDESK_AI_EXPORT_BOT_ID", ENV.ZENDESK_AI_EXPORT_BOT_ID);
+    vi.stubEnv("ZENDESK_SUBDOMAIN", ENV.ZENDESK_SUBDOMAIN);
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -31,25 +33,32 @@ describe("zendesk-ai-export", () => {
   });
 
   describe("getAIExportSignedUrls", () => {
-    it("posts to US endpoint by default", async () => {
+    it("posts to the Zendesk-hosted endpoint", async () => {
       const mockResponse = { date: "2024-03-15", signed_urls: ["https://example.com/file1.json"] };
       vi.mocked(fetch).mockResolvedValue(makeResponse(200, mockResponse));
 
       await getAIExportSignedUrls("2024-03-15");
 
       const [url, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
-      expect(url).toBe("https://api.us.ultimate.ai/data-export/v3/get-signed-urls");
+      expect(url).toBe("https://testsub.zendesk.com/ai-agents/api/data-export/v3/get-signed-urls");
       expect(options.method).toBe("POST");
     });
 
-    it("posts to EU endpoint when region is eu", async () => {
+    it("ignores the legacy region env var", async () => {
       vi.stubEnv("ZENDESK_AI_EXPORT_REGION", "eu");
       vi.mocked(fetch).mockResolvedValue(makeResponse(200, { signed_urls: [] }));
 
       await getAIExportSignedUrls("2024-03-15");
 
       const [url] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
-      expect(url).toBe("https://api.ultimate.ai/data-export/v3/get-signed-urls");
+      expect(url).toBe("https://testsub.zendesk.com/ai-agents/api/data-export/v3/get-signed-urls");
+    });
+
+    it("throws when ZENDESK_SUBDOMAIN is missing", async () => {
+      vi.stubEnv("ZENDESK_SUBDOMAIN", "");
+      await expect(getAIExportSignedUrls("2024-03-15")).rejects.toThrow(
+        "Missing ZENDESK_SUBDOMAIN"
+      );
     });
 
     it("sends correct auth headers", async () => {
